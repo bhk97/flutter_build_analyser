@@ -1,8 +1,12 @@
-use std::{fs, path::Path}; 
 use clap::Parser;
+use std::{fs, path::Path};
+mod analysers;
+mod collectors;
+mod models;
 mod precheck;
+use crate::analysers::asset_analyser::{asset_size_calculator, format_size};
+use crate::collectors::asset_collector::{expand_assets, read_pubspec};
 use precheck::runner::run_pre_checks;
-
 #[derive(Parser, Debug)]
 #[command(version, about = "Flutter Build Analyser")]
 struct Args {
@@ -15,37 +19,28 @@ fn main() {
     let args = Args::parse();
 
     let usr_path = Path::new(&args.path);
-    
+
     // Run pre checks - fs check and flutter project check
     let result = run_pre_checks(usr_path);
-    
+
     match result {
-        Ok(()) => {
-            let res = print_project_files(usr_path);
-            println!("File Path Count: {}", res);
-        }
+        Ok(()) => match read_pubspec(usr_path) {
+            Ok(assets) if assets.is_empty() => {
+                println!("No assets declared");
+            }
+            Ok(assets) => {
+                println!("Assets");
+                let expanded: Vec<std::path::PathBuf> = expand_assets(usr_path, assets);
+                let analysed_res = asset_size_calculator(expanded);
+                for asset in analysed_res {
+                    println!("{:<20} {}", asset.name, format_size(asset.size));
+                }
+            }
+            Err(e) => println!("Error: {}", e),
+        },
         Err(e) => {
             println!("Pre-check failed: {}", e);
             return;
         }
     }
-}
-
-
-//fn for total file checker
-fn print_project_files(path: &Path) -> u32 {
-    let mut file_count: u32 = 0;
-    if let Ok(entries) = fs::read_dir(path) {
-        for entry in entries {
-            let entry = entry.unwrap();
-            let path = entry.path();
-
-            if path.is_dir() {
-                file_count += print_project_files(&path);
-            } else {
-                file_count += 1;
-            }
-        }
-    }
-    return file_count;
 }
