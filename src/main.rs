@@ -1,8 +1,7 @@
 use std::{fs, path::Path}; 
 use clap::Parser;
 mod precheck;
-use precheck::flutter_proj_check::flutter_proj_check;
-use precheck::fs_check::check_path_is_valid;
+use precheck::runner::run_pre_checks;
 
 #[derive(Parser, Debug)]
 #[command(version, about = "Flutter Build Analyser")]
@@ -16,15 +15,19 @@ fn main() {
     let args = Args::parse();
 
     let usr_path = Path::new(&args.path);
-    let path_check_res = check_path_is_valid(usr_path);
-    if path_check_res {
-        let res = print_project_files(usr_path);
-        println!("File Path Count: {}", res);
-        let proj_type_check = flutter_proj_check(usr_path);
-        println!("Fluter proj check: {}", proj_type_check);
-    } else {
-        println!("Please pass correct path");
-        return;
+    
+    // Run pre checks - fs check and flutter project check
+    let result = run_pre_checks(usr_path);
+    
+    match result {
+        Ok(()) => {
+            let res = print_project_files(usr_path);
+            println!("File Path Count: {}", res);
+        }
+        Err(e) => {
+            println!("Pre-check failed: {}", e);
+            return;
+        }
     }
 }
 
