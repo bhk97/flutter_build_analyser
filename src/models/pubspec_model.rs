@@ -14,3 +14,8 @@ pub struct AssetInfo {
     pub name: String,
     pub size: u64,
 }
+
+pub struct UnusedAssetInfo {
+    pub name: String,
+    pub path: String,
+}

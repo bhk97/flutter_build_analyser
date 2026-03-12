@@ -1,10 +1,10 @@
 use clap::Parser;
-use std::{fs, path::Path};
+use std::path::Path;
 mod analysers;
 mod collectors;
 mod models;
 mod precheck;
-use crate::analysers::asset_analyser::{asset_size_calculator, format_size};
+use crate::analysers::asset_analyser::{asset_size_calculator, format_size, find_unused_assets};
 use crate::collectors::asset_collector::{expand_assets, read_pubspec};
 use precheck::runner::run_pre_checks;
 #[derive(Parser, Debug)]
@@ -31,9 +31,21 @@ fn main() {
             Ok(assets) => {
                 println!("Assets");
                 let expanded: Vec<std::path::PathBuf> = expand_assets(usr_path, assets);
-                let analysed_res = asset_size_calculator(expanded);
+                let analysed_res = asset_size_calculator(expanded.clone());
                 for asset in analysed_res {
                     println!("{:<20} {}", asset.name, format_size(asset.size));
+                }
+
+                //detect unused assets
+                let unused = find_unused_assets(usr_path, &expanded);
+                if unused.is_empty() {
+                    println!("\nNo unused assets found");
+                } else {
+                    println!("\nUnused Assets");
+                    for asset in &unused {
+                        println!("{:<20} {}", asset.name, asset.path);
+                    }
+                    println!("\nTotal unused: {}", unused.len());
                 }
             }
             Err(e) => println!("Error: {}", e),
