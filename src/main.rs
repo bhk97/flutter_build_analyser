@@ -55,30 +55,33 @@ fn main() {
                 Err(e) => println!("Error: {}", e),
             }
 
-            //build timing analysis
-            println!("\nRunning build...");
-            match run_flutter_build(usr_path, &args.build_command) {
-                Ok(build_output) => {
-                    let timing = analyse_build_timing(&build_output);
+            //build timing analysis - only run for actual build types
+            let build_types = ["apk", "appbundle", "ios", "ipa", "web", "linux", "macos", "windows"];
+            if build_types.contains(&args.build_command.as_str()) {
+                println!("\nRunning build...");
+                match run_flutter_build(usr_path, &args.build_command) {
+                    Ok(build_output) => {
+                        let timing = analyse_build_timing(&build_output);
 
-                    println!("\nBuild Timing");
-                    println!("{}", "-".repeat(50));
-                    println!("{:<30} {}", "Total Build Time", format_duration(timing.total_duration_ms));
-                    println!("{}", "-".repeat(50));
+                        println!("\nBuild Timing");
+                        println!("{}", "-".repeat(50));
+                        println!("{:<30} {}", "Total Build Time", format_duration(timing.total_duration_ms));
+                        println!("{}", "-".repeat(50));
 
-                    if !timing.phases.is_empty() {
-                        println!("\nPhase Breakdown");
-                        for phase in &timing.phases {
-                            let percentage = (phase.duration_ms as f64 / timing.total_duration_ms as f64) * 100.0;
-                            println!("{:<30} {:>10}  ({:.1}%)", phase.phase_name, format_duration(phase.duration_ms), percentage);
+                        if !timing.phases.is_empty() {
+                            println!("\nPhase Breakdown");
+                            for phase in &timing.phases {
+                                let percentage = (phase.duration_ms as f64 / timing.total_duration_ms as f64) * 100.0;
+                                println!("{:<30} {:>10}  ({:.1}%)", phase.phase_name, format_duration(phase.duration_ms), percentage);
+                            }
+                        }
+
+                        if !build_output.success {
+                            println!("\nBuild completed with errors");
                         }
                     }
-
-                    if !build_output.success {
-                        println!("\nBuild completed with errors");
-                    }
+                    Err(e) => println!("Build failed: {}", e),
                 }
-                Err(e) => println!("Build failed: {}", e),
             }
         }
         Err(e) => {
