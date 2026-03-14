@@ -6,8 +6,10 @@ mod models;
 mod precheck;
 use crate::analysers::asset_analyser::{asset_size_calculator, format_size, find_unused_assets};
 use crate::analysers::build_analyser::{analyse_build_timing, format_duration};
+use crate::analysers::dep_analyser::{analyse_dep_graph, print_dep_summary};
 use crate::collectors::asset_collector::{expand_assets, read_pubspec};
 use crate::collectors::build_collector::run_flutter_build;
+use crate::collectors::dep_collector::{parse_lockfile, resolve_cache_dir};
 use precheck::runner::run_pre_checks;
 #[derive(Parser, Debug)]
 #[command(version, about = "Flutter Build Analyser")]
@@ -53,6 +55,16 @@ fn main() {
                     }
                 }
                 Err(e) => println!("Error: {}", e),
+            }
+
+            //dependency graph analysis
+            match parse_lockfile(usr_path) {
+                Ok(entries) => {
+                    let cache_dir = resolve_cache_dir();
+                    let graph = analyse_dep_graph(&entries, &cache_dir);
+                    print_dep_summary(&graph);
+                }
+                Err(e) => println!("Error reading lockfile: {}", e),
             }
 
             //build timing analysis - only run for actual build types
