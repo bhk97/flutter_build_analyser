@@ -1,3 +1,4 @@
+use serde::Serialize;
 
 pub struct LockPackageEntry {
     pub name: String,
@@ -6,6 +7,7 @@ pub struct LockPackageEntry {
     pub source: String,
 }
 
+#[derive(Serialize)]
 pub struct DepPackageInfo {
     pub name: String,
     pub version: String,
@@ -15,6 +17,7 @@ pub struct DepPackageInfo {
     pub size: u64,
 }
 
+#[derive(Serialize)]
 pub struct DepGraphResult {
     pub packages: Vec<DepPackageInfo>,
     pub total_packages: usize,
