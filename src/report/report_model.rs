@@ -2,6 +2,7 @@ use serde::Serialize;
 use crate::models::pubspec_model::{AssetInfo, UnusedAssetInfo};
 use crate::models::dep_model::DepGraphResult;
 use crate::models::build_model::BuildTimingResult;
+use crate::models::apk_model::ApkBreakdownResult;
 
 #[derive(Serialize)]
 pub struct AnalysisReport {
@@ -13,6 +14,9 @@ pub struct AnalysisReport {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub build_timing: Option<BuildTimingResult>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub apk_breakdown: Option<ApkBreakdownResult>,
 }
 
 #[derive(Serialize)]
@@ -27,6 +31,7 @@ impl AnalysisReport {
             assets: None,
             dependencies: None,
             build_timing: None,
+            apk_breakdown: None,
         }
     }
 

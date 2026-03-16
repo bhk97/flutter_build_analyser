@@ -8,9 +8,11 @@ mod report;
 use crate::analysers::asset_analyser::{asset_size_calculator, format_size, find_unused_assets};
 use crate::analysers::build_analyser::{analyse_build_timing, format_duration};
 use crate::analysers::dep_analyser::{analyse_dep_graph, print_dep_summary};
+use crate::analysers::apk_analyser::{analyse_apk, print_apk_breakdown};
 use crate::collectors::asset_collector::{expand_assets, read_pubspec};
 use crate::collectors::build_collector::run_flutter_build;
 use crate::collectors::dep_collector::{parse_lockfile, resolve_cache_dir};
+use crate::collectors::apk_collector::{find_apk, read_apk_entries, get_apk_size};
 use crate::report::report_model::{AnalysisReport, AssetReport};
 use precheck::runner::run_pre_checks;
 #[derive(Parser, Debug)]
@@ -132,6 +134,31 @@ fn main() {
                     Err(e) => {
                         if !is_json {
                             println!("Build failed: {}", e);
+                        }
+                    }
+                }
+            }
+
+            //apk size breakdown - run if APK exists in build output
+            if let Some(apk_path) = find_apk(usr_path) {
+                let file_name = apk_path
+                    .file_name()
+                    .map(|n| n.to_string_lossy().to_string())
+                    .unwrap_or_else(|| "unknown.apk".to_string());
+
+                match (read_apk_entries(&apk_path), get_apk_size(&apk_path)) {
+                    (Ok(entries), Ok(apk_size)) => {
+                        let breakdown = analyse_apk(entries, apk_size, &file_name);
+
+                        if is_json {
+                            report.apk_breakdown = Some(breakdown);
+                        } else {
+                            print_apk_breakdown(&breakdown);
+                        }
+                    }
+                    (Err(e), _) | (_, Err(e)) => {
+                        if !is_json {
+                            println!("APK analysis failed: {}", e);
                         }
                     }
                 }
