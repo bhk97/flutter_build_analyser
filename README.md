@@ -11,6 +11,16 @@ Or
 
 You can download binary from release section and run it directly and can try with your project
 
+## macOS Users
+
+If you see a security warning:
+
+Run:
+
+xattr -d com.apple.quarantine build-buddy
+chmod +x build-buddy
+./build-buddy <build-command> <project-path> [output-type]
+
 ### Arguments
 - `<build-command>`: The Flutter build type (e.g., `apk`, `appbundle`, `ios`, `ipa`, `web`, `linux`, `macos`, `windows`).
 - `<project-path>`: Path to the root of the Flutter project.
