@@ -1,5 +1,5 @@
 [package]
-name = "rust-projects"
+name = "build-buddy"
 version = "0.1.0"
 edition = "2024"
 

@@ -7,6 +7,9 @@ A CLI tool to analyze Flutter projects, assets, dependencies, and build performa
 ```bash
 cargo run -- <build-command> <project-path> [output-type]
 ```
+Or
+
+You can download binary from release section and run it directly and can try with your project
 
 ### Arguments
 - `<build-command>`: The Flutter build type (e.g., `apk`, `appbundle`, `ios`, `ipa`, `web`, `linux`, `macos`, `windows`).
